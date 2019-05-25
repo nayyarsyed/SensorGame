@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="game_over_defaultMargin">8dp</dimen>
+    <dimen name="game_over_points_text_size">72sp</dimen>
+    <dimen name="game_over_button_size">150dp</dimen>
+    <dimen name="game_over_button_restart_margin_start">20dp</dimen>
+    <dimen name="game_over_but_home_margin_end">20dp</dimen>
+    <dimen name="main_menu_but_width">344dp</dimen>
+    <dimen name="main_menu_defaultMargin">8dp</dimen>
+    <dimen name="main_menu_best_label_text_size">50sp</dimen>
+</resources>

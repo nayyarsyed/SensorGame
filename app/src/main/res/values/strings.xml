@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">SensorGame</string>
+    <string name="main_menu_quit_button_text">Quit</string>
+    <string name="main_menu_best_label_text">Best</string>
+    <string name="main_menu_default_best">0</string>
+    <string name="main_menu_but_start_text">Start</string>
+    <string name="game_over_default_points">0</string>
+</resources>
