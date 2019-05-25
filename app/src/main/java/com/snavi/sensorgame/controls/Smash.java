@@ -5,8 +5,6 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.util.Log;
-
 import com.snavi.sensorgame.game_objects.Hammer;
 
 public class Smash implements SensorEventListener {

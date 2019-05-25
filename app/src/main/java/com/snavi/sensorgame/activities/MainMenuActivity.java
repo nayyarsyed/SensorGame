@@ -26,7 +26,7 @@ public class MainMenuActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main_menu);
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        
+
         setBest();
         setStartButtonOnClick();
         setQuitButtonOnClick();

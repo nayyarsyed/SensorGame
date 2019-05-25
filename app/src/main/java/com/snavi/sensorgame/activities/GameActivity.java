@@ -1,6 +1,5 @@
 package com.snavi.sensorgame.activities;
 
-import android.content.SharedPreferences;
 import android.graphics.Point;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -15,9 +14,6 @@ public class GameActivity extends AppCompatActivity {
     // CONST ///////////////////////////////////////////////////////////////////////////////////////
     public static final String SAVED_BULLET_SPEED_KEY = "saved_bullet_speed";
     public static final String SAVED_POINTS_KEY       = "saved_points";
-    public static final int BULLET_SPEED_IDX          = 1;  // idx in array with previous state (if user won another life)
-    public static final int POINTS_IDX                = 0;  // idx in array with previous state (if user won another life)
-
 
 
     private int m_screenWidth;

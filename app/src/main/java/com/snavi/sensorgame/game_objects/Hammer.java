@@ -1,7 +1,6 @@
 package com.snavi.sensorgame.game_objects;
 
 import android.graphics.Paint;
-import android.util.Log;
 
 public class Hammer extends RectangularGameObject {
 
