@@ -1,23 +1,18 @@
 package com.snavi.sensorgame.views;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
-import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-
 import com.snavi.sensorgame.R;
 import com.snavi.sensorgame.activities.GameActivity;
 import com.snavi.sensorgame.activities.GameOverActivity;
-import com.snavi.sensorgame.activities.MainMenuActivity;
 import com.snavi.sensorgame.controls.Shake;
 import com.snavi.sensorgame.controls.Smash;
 import com.snavi.sensorgame.game_objects.Bullet;
@@ -100,6 +95,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Run
 
     // game state /////////////////////////////////////////////////////////////////////////////////
     private boolean m_end;
+    private boolean m_totalEnd;                 // true, if user left app
     private int m_ticksSinceBulletGeneration;
     private int m_ticksSinceSpeedUp;
 
@@ -158,6 +154,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Run
         m_screenWidth  = screenWidth;
         m_screenHeight = screenHeight;
         m_end          = false;
+        m_totalEnd     = false;
         m_ticksSinceBulletGeneration = 0;
         m_bullets = new ArrayList<>();
 
@@ -298,12 +295,18 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Run
     @Override
     public void run()
     {
-        while(!m_end)
+        while(!m_end && !m_totalEnd)
         {
             m_canvas = m_holder.lockCanvas();
 
             drawAll();
             tick();
+
+            if (m_canvas == null)
+            {
+                gameOver();
+                return;
+            }
 
             m_holder.unlockCanvasAndPost(m_canvas);
             try
@@ -316,7 +319,10 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Run
             }
         }
 
-        gameOver();
+        if (m_totalEnd)
+            startGameOverActivity();
+        else
+            gameOver();
     }
 
 
@@ -416,22 +422,33 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Run
 
 
 
-    private void gameOver() {
+    private void gameOver()
+    {
         boolean nextLife = getNextLife();
 
-        if (nextLife)
-        {
-            Intent intent = new Intent(getContext(), GameActivity.class);
-            intent.putExtra(GameActivity.SAVED_BULLET_SPEED_KEY, m_bulletSpeed);
-            intent.putExtra(GameActivity.SAVED_POINTS_KEY, m_points);
-            getContext().startActivity(intent);
-        }
+        if (nextLife && !m_totalEnd)
+            continueGame();
         else
-        {
-            Intent intent = new Intent(getContext(), GameOverActivity.class);
-            intent.putExtra(GameOverActivity.POINTS_KEY, m_points);
-            getContext().startActivity(intent);
-        }
+            startGameOverActivity();
+    }
+
+
+
+    private void continueGame()
+    {
+        Intent intent = new Intent(getContext(), GameActivity.class);
+        intent.putExtra(GameActivity.SAVED_BULLET_SPEED_KEY, m_bulletSpeed);
+        intent.putExtra(GameActivity.SAVED_POINTS_KEY, m_points);
+        getContext().startActivity(intent);
+    }
+
+
+
+    private void startGameOverActivity()
+    {
+        Intent intent = new Intent(getContext(), GameOverActivity.class);
+        intent.putExtra(GameOverActivity.POINTS_KEY, m_points);
+        getContext().startActivity(intent);
     }
 
 
@@ -443,11 +460,14 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Run
     {
         m_shake.start();
         drawShakePrompt();
-        while (!m_shake.isShaking()) {}
+        while (!m_shake.isShaking())
+            if (m_totalEnd)
+                return false;
 
         boolean nextLife = runLottery();
 
         m_shake.stop();
+        if (m_totalEnd) return false;
         return nextLife;
     }
 
@@ -493,35 +513,46 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Run
 
     private void clearCanvas()
     {
-        m_canvas.drawRect(m_fullScreenRectF, m_backgroundPaint);
+        if (!m_totalEnd)
+            m_canvas.drawRect(m_fullScreenRectF, m_backgroundPaint);
     }
 
 
 
     private void drawFloor()
     {
-        m_floor.draw(m_canvas);
+        if (!m_totalEnd)
+            m_floor.draw(m_canvas);
     }
 
 
 
     private void drawHammer()
     {
-        m_hammer.draw(m_canvas);
+        if (!m_totalEnd)
+            m_hammer.draw(m_canvas);
     }
 
 
 
     private void drawBullets()
     {
-        for(Bullet bullet : m_bullets) bullet.draw(m_canvas);
+
+        for(Bullet bullet : m_bullets)
+        {
+            if (!m_totalEnd)
+                bullet.draw(m_canvas);
+            else
+                return;
+        }
     }
 
 
 
     private void drawPoints()
     {
-        m_canvas.drawText(m_points + "", POINTS_X, POINTS_Y, m_pointsPaint);
+        if (!m_totalEnd)
+            m_canvas.drawText(m_points + "", POINTS_X, POINTS_Y, m_pointsPaint);
     }
 
 
@@ -529,6 +560,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Run
     private void drawShakePrompt()
     {
         m_canvas = m_holder.lockCanvas();
+        if (m_totalEnd) return;
         m_canvas.drawText(
                 SHAKE_PROMPT,
                 m_screenWidth / 2 - m_shakePaint.measureText(SHAKE_PROMPT) / 2,
@@ -541,6 +573,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Run
     private void drawAllLottery(boolean win)
     {
         m_canvas = m_holder.lockCanvas();
+        if (m_totalEnd) return;
+
         drawAll();
         if (win)
             m_canvas.drawBitmap(m_hartRed, m_screenWidth / 2 - HART_SIZE / 2, m_screenHeight / 2 - HART_SIZE / 2, new Paint());
@@ -570,7 +604,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Run
     @Override
     public void surfaceDestroyed(SurfaceHolder holder)
     {
-
+        m_totalEnd = true;
     }
 
 
